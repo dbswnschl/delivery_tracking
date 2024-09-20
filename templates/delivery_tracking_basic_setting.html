@@ -21,9 +21,7 @@
         {% for site in site_map %}
             {{ macros.setting_checkbox('use_site_'+site, site_map[site] , desc=None, value=arg['use_site_'+site]) }}
             <div id="div_setting_{{site}}" style="display: none; margin-left:10%;">
-                {% for board in site_board_map[site] %}
-                    {{ macros.setting_checkbox('use_board_'+site+'_'+board, board_map[board],  value=arg['use_board_'+site+'_'+board]) }}
-                {% endfor %}
+
     
             </div>
         {% endfor %}
