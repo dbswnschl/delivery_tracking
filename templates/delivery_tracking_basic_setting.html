@@ -8,7 +8,7 @@
 
 <nav>
     {{ macros.m_tab_head_start() }}
-      {{ macros.m_tab_head('normal', '사이트 설정', true) }}
+      {{ macros.m_tab_head('normal', '택배사 설정', true) }}
       {{ macros.m_tab_head('alarm', '알람 설정', false) }}
       {{ macros.m_tab_head('auto', '자동', false) }}
       {{ macros.m_tab_head('db', 'DB', false) }}
@@ -33,17 +33,9 @@
     {{ macros.m_tab_content_start('alarm', false) }} 
     {{ macros.setting_checkbox('use_delivery_tracking', '전체 알람 사용', desc='메시지 ID : bot_delivery_tracking', value=arg['use_delivery_tracking']) }}
 
-    {{ macros.setting_checkbox('use_hotdeal_web_push', '웹푸시 사용', desc='웹브라우저의 푸시 기능을 사용합니다.', value=arg['use_hotdeal_web_push']) }}
-    {{ macros.setting_buttons([ ['btnWebPushInit', '(최초1회실행필요) push key 발급'], ['btnAllowWebPushThisDevice', '(기기당1회실행) 현재 접속한 기기에서 푸시 알람 받기' ] ]) }}
-    {{ macros.setting_input_text('web_push_public_key','웹 푸시용 공개 키',value=arg['web_push_public_key'],desc='push key 발급이 안되는 경우 터미널에 접속하여 mkdir -p /data/web_push ; cd /data/web_push ; /usr/local/bin/vapid --applicationServerKey --gen 를 입력 후 결과로 나온 Application Server Key 값을 넣고 저장해주세요.') }}
-    {{ macros.setting_input_text_and_buttons('web_push_subscription','web_push_subscription', [ ['btnResetWebPush', '웹푸시 구독정보 리셋'] ],value=arg['web_push_subscription'] ) }}
 
 
-    {{ macros.setting_checkbox('use_hotdeal_keyword_alarm', '키워드 알람 사용', desc='전체 알람 사용 ON, 키워드 알람 OFF 일 경우 모든 게시물이 알람설정 됩니다.', value=arg['use_hotdeal_keyword_alarm']) }}
-    {{ macros.setting_checkbox('use_hotdeal_keyword_alarm_dist', '키워드 따로 알람받기', desc='키워드 알람 메시지 ID : bot_delivery_tracking_keyword', value=arg['use_hotdeal_keyword_alarm_dist']) }}
 
-    {{ macros.setting_input_text('delivery_tracking_keyword', '알림 받을 키워드 입력', value=arg['delivery_tracking_keyword'], col='3', desc=['콤마(,) 로 구분합니다.']) }}
-    {{ macros.setting_input_textarea('alarm_message_template', '알람 내용', value=arg['alarm_message_template'], row=10, desc=['빈 칸인 경우 알람이 울리지 않습니다.', '아래 키워드들을 사용하실 수 있습니다.', '{title} : 게시글 제목', '{site} : 사이트명 ex) 뽐뿌', '{board} : 게시판명 ex) 뽐뿌게시판', '{url} : 게시글 주소', '{mall_url} : 쇼핑몰 주소 (게시글에서 주소가 인식 됐을 때만 표시)' ]) }}
 
     {{ macros.m_tab_content_end() }}
     {{ macros.m_tab_content_start('auto', false) }}
@@ -87,13 +79,6 @@
 
 
 $(document).ready(function(){
-    const isSupported = () =>
-        'Notification' in window &&
-        'serviceWorker' in navigator &&
-        'PushManager' in window;
-    if (!isSupported()){
-        alert("[웹앱이 아님] web push 기능을 사용하시려면, 웹앱 상태로 접근이 필요합니다.");
-    } 
     {% for site_name in site_map %}
         $(`#use_site_{{site_name}}`).off('change').on('change',(evt)=>{
         if ($(evt.currentTarget).prop('checked') === true) {
@@ -127,108 +112,9 @@ $(document).ready(function(){
             $('#btnAllowWebPushThisDevice').css('display', 'none');
         }
     });
-    if (isSupported() && Notification.permission === 'granted'){
-            $('#btnAllowWebPushThisDevice').text("[기기 등록] 현재 접속한 기기로 push 알람을 받습니다.");
-            $('#btnAllowWebPushThisDevice').removeClass('btn-outline-primary').addClass('btn-outline-success');
-            
-
-        } else if (isSupported() && Notification.permission === 'denied'){
-            $('#btnAllowWebPushThisDevice').text("[기기 등록 불가] 현재 접속한 기기에 push 알람 권한이 없습니다.");
-            $('#btnAllowWebPushThisDevice').removeClass('btn-outline-primary').addClass('btn-outline-danger');
-
-        }
     
-    $('body').on('click', '#btnAllowWebPushThisDevice', async (e) => {
-        e.preventDefault();
-        
-        if (!isSupported()){
-            Notification = window.safari.pushNotification;
-        }
-        if (!isSupported()) {
-            return;
-        }
-        if ( isSupported() && Notification.permission === 'denied'){
-            alert("이미 푸시 알람이 차단되어 있는 경우, 브라우저 설정에서 수동으로 권한 승인이 필요합니다.\n크롬기준 사이트 설정 > 알림");
-        }
-        else {
-            if (isSupported() && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-            let registration = await navigator.serviceWorker.getRegistration();
-            if (!registration) {
-                // 없으면 서비스 워커 등록
-                registration = await registerServiceWorker();
-            }
-            let subscription = await registration.pushManager.getSubscription();
-            if (!subscription) {
-                subscription = await registration.pushManager.subscribe({
-                    applicationServerKey: urlBase64ToUint8Array($('#web_push_public_key').val().trim()),
-                    userVisibleOnly: true,
-                });
-            }
-            $.ajax({
-                url: '/delivery_tracking/api/web_push_subscribe', 
-                contentType : 'application/json',
-                method: 'POST',
-                data : JSON.stringify(subscription),
-                success:(resp)=>{
-                    $.ajax({
-                        url : '/delivery_tracking/api/web_push',
-                        contentType : 'application/json',
-                        method: 'POST',
-                        data : JSON.stringify({
-                            message : '[테스트 메시지] 새로운 웹 푸시가 등록 되었습니다.',
-                            url : '/delivery_tracking/basic/list'
-                        }),
-                        success:()=>{
-                            alert("현재 기기로 웹 푸시가 등록 되었습니다.")
-                            location.reload();
-                        }
-
-                    })
-                }
-            })
-            
-        }
-        
-    });
-    $('body').on('click', '#btnWebPushInit', (e) => {
-        e.preventDefault();
-        $.ajax({
-            url : '/delivery_tracking/api/web_push_init',
-            method : 'POST',
-            success : (resp)=>{
-                let data = JSON.parse(resp);
-                $('#web_push_public_key').val(data.key);
-            },
-            fail : (resp) => {
-                alert(resp);
-            }
-        })
-    })
-    $('body').on('click', '#btnResetWebPush', async (e)=>{
-        e.preventDefault();
-        
-        let registration = await navigator.serviceWorker.getRegistration('{{ url_for("delivery_tracking.static", filename="service-worker.js") }}');
-        if ( registration && 'pushManager' in registration){
-            let subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                subscription.unsubscribe();
-            }
-        }
-        if (registration) {
-            await registration.unregister();
-        }
-        $.ajax({
-                url: '/delivery_tracking/api/web_push_reset', 
-                contentType : 'application/json',
-                method: 'POST',
-                success : (resp) => {
-                    alert("초기화 완료");
-                    $('#web_push_subscription').val('[]');
-                }
-            });
-    })
+   
+    
 });
 
 </script>

@@ -1,0 +1,22 @@
+{   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+    "display": "fullscreen",
+    "start_url": "https://dbswnschl.synology.me/delivery_tracking/",
+    "name": "Delivery Tracking",
+    "short_name": "Delivery Tracking",
+    "theme_color" : "#3367D6",
+    "background_color": "#3367D6",
+    "icons": [ 
+        {
+            "src": "/delivery_tracking/static/icon_256.png",
+            "sizes": "256x256",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/delivery_tracking/static/icon_512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+    
+}
