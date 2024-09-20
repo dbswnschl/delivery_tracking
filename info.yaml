@@ -1,0 +1,7 @@
+title: "택배 알람"
+version: "0.0.0.1"
+package_name: "delivery_tracking"
+developer: "dbswnschl"
+description: "택배 추적 알리미"
+home: "https://github.com/dbswnschl/delivery_tracking"
+more: "https://raw.githubusercontent.com/dbswnschl/delivery_tracking/main/README.md"
