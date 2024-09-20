@@ -45,7 +45,7 @@ class ModelItem(ModelBase):
     def get_list(cls):
         ret = super().get_list(by_dict=True)
         return ret
-            @classmethod
+    @classmethod
     def get_alarm_target_list(cls):
         try:
             with F.app.app_context():
