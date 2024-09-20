@@ -18,7 +18,7 @@ site_map = {
         'regex_tracking' : r'<tr height=22 bgcolor=#F6F6F6>\s+<td align=center>&nbsp;(?P<date>\d{4}-\d{2}-\d{2})&nbsp;</td>\s+<td align=center>&nbsp;(?P<time>\d+:\d+:\d+)&nbsp;</td>[\S\W]+?<td width=140>&nbsp;(?P<track>\w+)&nbsp;</td>[\S\W]+?<td align=center>&nbsp;(?P<status>\w+)&nbsp;</td>'    
     },
     '경동택배' : {
-        'url' : 'https://kdexp.com/service/delivery/ajax_basic.do?barcode={track_no}'
+        'url' : 'https://kdexp.com/service/delivery/ajax_basic.do?barcode={track_no}',
         'type' : 'json'
     },
     '한진택배' : {
