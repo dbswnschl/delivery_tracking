@@ -62,6 +62,7 @@ function make_list(data) {
         str += j_col(1, item.status);
         tmp = ''
         tmp += j_button('nameChangeBtn', '이름 변경', {'name':data[i].title,'id':data[i].id}, 'primary');
+        tmp += j_button('completeBtn', '배송완료', {'id':data[i].id}, 'success');
         tmp += j_button('globalDbDeleteItemBtn', '삭제', {'id':data[i].id}, 'primary');
         tmp += j_button('globalJsonBtn', '정보', {'idx':i}, 'primary');
         tmp = j_button_group(tmp)
@@ -78,8 +79,24 @@ $(document).on('click', '#nameChangeBtn', function() {
     let id = $(this).data('id');
     let new_name = prompt('새로운 이름을 입력하세요', name);
     if (new_name) {
-        globalSendCommand('rename', id, new_name);
-        location.reload();
+        // 주의: 기존 코드는 globalSendCommand() 호출 직후 바로 location.reload()를 실행해서
+        // 서버가 이름 변경을 저장하기 전에(또는 요청이 취소된 채로) 페이지가 새로고침되어
+        // 변경이 반영 안 된 것처럼 보이는 레이스 컨디션이 있었다.
+        // globalSendCommand가 콜백(마지막 인자)을 지원한다면 아래처럼 완료 후 리로드한다.
+        // (프레임워크의 base.js에서 실제 시그니처를 한 번 확인해 주세요. 콜백을 지원하지 않고
+        //  jqXHR/Promise를 반환하는 구현이라면 .done(() => location.reload())로 대체하면 됩니다.)
+        globalSendCommand('rename', id, new_name, function() {
+            location.reload();
+        });
+    }
+});
+
+$(document).on('click', '#completeBtn', function() {
+    let id = $(this).data('id');
+    if (confirm('이 택배를 배송완료로 처리할까요? (더 이상 추적하지 않습니다)')) {
+        globalSendCommand('complete', id, '', function() {
+            location.reload();
+        });
     }
 });
 </script>
